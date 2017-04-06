@@ -14,8 +14,8 @@
 #include <memory>
 
 #include "db/db_impl.h"
-#include "db/filename.h"
 #include "db/write_batch_internal.h"
+#include "monitoring/instrumented_mutex.h"
 #include "rocksdb/convenience.h"
 #include "rocksdb/env.h"
 #include "rocksdb/iterator.h"
@@ -26,8 +26,9 @@
 #include "table/block_builder.h"
 #include "table/meta_blocks.h"
 #include "util/crc32c.h"
+#include "util/filename.h"
 #include "util/file_reader_writer.h"
-#include "util/instrumented_mutex.h"
+#include "util/random.h"
 #include "util/timer_queue.h"
 #include "utilities/transactions/optimistic_transaction_db_impl.h"
 #include "utilities/transactions/optimistic_transaction_impl.h"
@@ -160,11 +161,11 @@ bool blobf_compare_ttl::operator()(const std::shared_ptr<BlobFile>& lhs,
   return lhs->BlobFileNumber() > rhs->BlobFileNumber();
 }
 
-void EvictAllVersionsCompactionListener::OnCompaction(
-    int level, const Slice& key, CompactionListenerValueType value_type,
-    const Slice& existing_value, const SequenceNumber& sn, bool is_new) const {
+void EvictAllVersionsCompactionListener::InternalListener::OnCompaction(
+    int level, const Slice& key, CompactionEventListener::CompactionListenerValueType value_type,
+    const Slice& existing_value, const SequenceNumber& sn, bool is_new) {
   if (!is_new &&
-      value_type == EventListener::CompactionListenerValueType::kValue) {
+      value_type == CompactionEventListener::CompactionListenerValueType::kValue) {
     BlobHandle handle;
     Slice lsmval(existing_value);
     Status s = handle.DecodeFrom(&lsmval);
