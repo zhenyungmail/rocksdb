@@ -135,6 +135,8 @@ bool RandomTransactionInserter::DoInsert(DB* db, Transaction* txn,
 
   if (s.ok()) {
     if (txn != nullptr) {
+      txn->SetName("df");
+      s = txn->Prepare();
       s = txn->Commit();
 
       if (!s.ok()) {

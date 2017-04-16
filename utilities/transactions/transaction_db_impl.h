@@ -37,6 +37,8 @@ class TransactionDBImpl : public TransactionDB {
                                 const TransactionOptions& txn_options,
                                 Transaction* old_txn) override;
 
+  using TransactionDB::FlushCommitBuffer;
+  virtual void FlushCommitBuffer(TransactionDB* txn_db);
   using StackableDB::Put;
   virtual Status Put(const WriteOptions& options,
                      ColumnFamilyHandle* column_family, const Slice& key,

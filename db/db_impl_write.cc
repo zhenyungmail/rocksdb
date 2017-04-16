@@ -59,9 +59,29 @@ Status DBImpl::WriteWithCallback(const WriteOptions& write_options,
 Status DBImpl::WriteImpl(const WriteOptions& write_options,
                          WriteBatch* my_batch, WriteCallback* callback,
                          uint64_t* log_used, uint64_t log_ref,
-                         bool disable_memtable) {
+                         bool disable_memtable, bool write_to_buf,
+                         bool flush_buf) {
   if (my_batch == nullptr) {
     return Status::Corruption("Batch is nullptr!");
+  }
+
+  // write_to_buf means that this is part of 2pc group commit of mysql and the
+  // output can be buffered until the last commit in the group (or a separate
+  // func call with an empty write batch) request flusing the buffer by setting
+  // both write_to_buf and flush_buf
+  if (write_to_buf) {
+    // No need for synchronization here since mysql sends such commits one by one
+    // InstrumentedMutexLock(buf_mutex_);
+    WriteBatchInternal::Append(&buf, my_batch, true /*wal_only*/);
+    if (flush_buf) {
+      // This commit is the last commit in the group commit (or an empty write
+      // after last commit). So flush the buffer to the WAL.
+      my_batch = &buf;
+    } else {
+      // We assume that when write_to_buf is set there is no memtable write
+      // reqeusted. This is correct when writing to memtable at prepare phase.
+      return Status::OK();
+    }
   }
 
   Status status;

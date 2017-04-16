@@ -192,7 +192,7 @@ Status TransactionImpl::Prepare() {
     WriteBatchInternal::MarkEndPrepare(GetWriteBatch()->GetWriteBatch(), name_);
     s = db_impl_->WriteImpl(write_options, GetWriteBatch()->GetWriteBatch(),
                             /*callback*/ nullptr, &log_number_, /*log ref*/ 0,
-                            /* disable_memtable*/ true);
+                            /* disable_memtable*/ false);
     if (s.ok()) {
       assert(log_number_ != 0);
       dbimpl_->MarkLogAsContainingPrepSection(log_number_);
@@ -269,8 +269,10 @@ Status TransactionImpl::Commit() {
     // in non recovery mode and simply insert the values
     WriteBatchInternal::Append(working_batch, GetWriteBatch()->GetWriteBatch());
 
+    const bool write_to_buf = true;
+    const bool flush_buf = true;
     s = db_impl_->WriteImpl(write_options_, working_batch, nullptr, nullptr,
-                            log_number_);
+                            log_number_, true, write_to_buf, !flush_buf);
     if (!s.ok()) {
       return s;
     }

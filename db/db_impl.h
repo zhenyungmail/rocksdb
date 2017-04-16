@@ -529,6 +529,8 @@ class DBImpl : public DB {
 
   Status NewDB();
 
+  WriteBatch buf;
+
  protected:
   Env* const env_;
   const std::string dbname_;
@@ -579,10 +581,12 @@ class DBImpl : public DB {
 
   void EraseThreadStatusDbInfo() const;
 
+ public:
   Status WriteImpl(const WriteOptions& options, WriteBatch* updates,
                    WriteCallback* callback = nullptr,
                    uint64_t* log_used = nullptr, uint64_t log_ref = 0,
-                   bool disable_memtable = false);
+                   bool disable_memtable = false, bool write_to_buf = false,
+                   bool flush_buf = false);
 
   uint64_t FindMinLogContainingOutstandingPrep();
   uint64_t FindMinPrepLogReferencedByMemTable();
