@@ -71,12 +71,14 @@ Status DBImpl::WriteImpl(const WriteOptions& write_options,
   // both write_to_buf and flush_buf
   if (write_to_buf) {
     // No need for synchronization here since mysql sends such commits one by one
-    // InstrumentedMutexLock(buf_mutex_);
-    WriteBatchInternal::Append(&buf, my_batch, true /*wal_only*/);
+    InstrumentedMutexLock bl(&buf_mutex2_);
+    WriteBatchInternal::Append(buf_ptr, my_batch, true /*wal_only*/);
     if (flush_buf) {
       // This commit is the last commit in the group commit (or an empty write
       // after last commit). So flush the buffer to the WAL.
-      my_batch = &buf;
+      my_batch = buf_ptr;
+      old_buf_ptr = buf_ptr;
+      buf_ptr = new WriteBatch();
     } else {
       // We assume that when write_to_buf is set there is no memtable write
       // reqeusted. This is correct when writing to memtable at prepare phase.

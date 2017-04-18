@@ -20,19 +20,6 @@
 
 namespace rocksdb {
 
-void TransactionDBImpl::FlushCommitBuffer(TransactionDB* txn_db) {
-  DBImpl* db_impl = dynamic_cast<DBImpl*>(txn_db->GetRootDB());
-  const bool write_to_buf = true;
-  const bool flush_buf = true;
-  const bool disable_memtable = true;
-  const uint64_t log_number = 0;
-  WriteOptions write_options;
-  WriteBatch empty_batch;
-  db_impl->WriteImpl(write_options, &empty_batch, nullptr, nullptr, log_number,
-                     disable_memtable, write_to_buf, flush_buf);
-  db_impl->buf.Clear();
-}
-
 TransactionDBImpl::TransactionDBImpl(DB* db,
                                      const TransactionDBOptions& txn_db_options)
     : TransactionDB(db),

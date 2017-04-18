@@ -170,8 +170,6 @@ class TransactionDB : public StackableDB {
   virtual std::unordered_multimap<uint32_t, KeyLockInfo>
   GetLockStatusData() = 0;
 
-  virtual void FlushCommitBuffer(TransactionDB* txn_db) {}
-
  protected:
   // To Create an TransactionDB, call Open()
   explicit TransactionDB(DB* db) : StackableDB(db) {}

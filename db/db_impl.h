@@ -529,7 +529,8 @@ class DBImpl : public DB {
 
   Status NewDB();
 
-  WriteBatch buf;
+  WriteBatch* buf_ptr = new WriteBatch();
+  WriteBatch* old_buf_ptr;
 
  protected:
   Env* const env_;
@@ -785,6 +786,7 @@ class DBImpl : public DB {
   InstrumentedMutex options_files_mutex_;
   // State below is protected by mutex_
   mutable InstrumentedMutex mutex_;
+  InstrumentedMutex buf_mutex2_;
 
   std::atomic<bool> shutting_down_;
   // This condition variable is signaled on these conditions:

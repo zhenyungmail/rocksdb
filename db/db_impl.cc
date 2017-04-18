@@ -146,6 +146,8 @@ DBImpl::DBImpl(const DBOptions& options, const std::string& dbname)
       db_lock_(nullptr),
       mutex_(stats_, env_, DB_MUTEX_WAIT_MICROS,
              immutable_db_options_.use_adaptive_mutex),
+      buf_mutex2_(stats_, env_, DB_MUTEX_WAIT_MICROS,
+             immutable_db_options_.use_adaptive_mutex),
       shutting_down_(false),
       bg_cv_(&mutex_),
       logfile_number_(0),
@@ -207,6 +209,7 @@ DBImpl::DBImpl(const DBOptions& options, const std::string& dbname)
   immutable_db_options_.Dump(immutable_db_options_.info_log.get());
   mutable_db_options_.Dump(immutable_db_options_.info_log.get());
   DumpSupportInfo(immutable_db_options_.info_log.get());
+    ROCKS_LOG_INFO(immutable_db_options_.info_log, "xyz");
 }
 
 // Will lock the mutex_,  will wait for completion if wait is true
@@ -646,6 +649,18 @@ Status DBImpl::SyncWAL() {
   uint64_t current_log_number;
 
   {
+    // FlushCommitBuffer(this);
+    const bool write_to_buf = true;
+    const bool flush_buf = true;
+    const bool disable_memtable = true;
+    const uint64_t log_number = 0;
+    WriteOptions write_options;
+    WriteBatch empty_batch;
+    WriteImpl(write_options, &empty_batch, nullptr, nullptr, log_number,
+              disable_memtable, write_to_buf, flush_buf);
+    ROCKS_LOG_INFO(immutable_db_options_.info_log, "XYZ");
+    delete old_buf_ptr;
+
     InstrumentedMutexLock l(&mutex_);
     assert(!logs_.empty());
 
