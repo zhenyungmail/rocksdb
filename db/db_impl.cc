@@ -644,22 +644,31 @@ int DBImpl::FindMinimumEmptyLevelFitting(ColumnFamilyData* cfd,
 }
 
 Status DBImpl::SyncWAL() {
+  return FlushWAL(true);
+}
+
+Status DBImpl::FlushWAL(bool sync) {
   autovector<log::Writer*, 1> logs_to_sync;
   bool need_log_dir_sync;
   uint64_t current_log_number;
 
   {
-    // FlushCommitBuffer(this);
     const bool write_to_buf = true;
     const bool flush_buf = true;
     const bool disable_memtable = true;
     const uint64_t log_number = 0;
     WriteOptions write_options;
     WriteBatch empty_batch;
+    WriteBatch* old_buf_ptr = nullptr;
     WriteImpl(write_options, &empty_batch, nullptr, nullptr, log_number,
-              disable_memtable, write_to_buf, flush_buf);
-    ROCKS_LOG_INFO(immutable_db_options_.info_log, "XYZ");
+              disable_memtable, write_to_buf, flush_buf, &old_buf_ptr);
     delete old_buf_ptr;
+    if (!sync) {
+      ROCKS_LOG_INFO(immutable_db_options_.info_log, "FlushWAL-nosync");
+      return Status::OK();
+    } else {
+      ROCKS_LOG_INFO(immutable_db_options_.info_log, "FlushWAL-sync");
+    }
 
     InstrumentedMutexLock l(&mutex_);
     assert(!logs_.empty());

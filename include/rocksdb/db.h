@@ -823,6 +823,10 @@ class DB {
   // same as Write() with sync=true: in the latter case the changes won't be
   // visible until the sync is done.
   // Currently only works if allow_mmap_writes = false in Options.
+  virtual Status FlushWAL(bool sync) {
+    throw std::runtime_error("FlushWAL not implemented");
+    return Status::OK();
+  }
   virtual Status SyncWAL() = 0;
 
   // The sequence number of the most recent transaction.

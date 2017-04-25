@@ -188,6 +188,7 @@ class DBImpl : public DB {
   using DB::Flush;
   virtual Status Flush(const FlushOptions& options,
                        ColumnFamilyHandle* column_family) override;
+  virtual Status FlushWAL(bool sync) override;
   virtual Status SyncWAL() override;
 
   virtual SequenceNumber GetLatestSequenceNumber() const override;
@@ -529,8 +530,8 @@ class DBImpl : public DB {
 
   Status NewDB();
 
+  //WriteBatch buf;
   WriteBatch* buf_ptr = new WriteBatch();
-  WriteBatch* old_buf_ptr;
 
  protected:
   Env* const env_;
@@ -587,7 +588,7 @@ class DBImpl : public DB {
                    WriteCallback* callback = nullptr,
                    uint64_t* log_used = nullptr, uint64_t log_ref = 0,
                    bool disable_memtable = false, bool write_to_buf = false,
-                   bool flush_buf = false);
+                   bool flush_buf = false, WriteBatch** old_buf_ptr = nullptr);
 
   uint64_t FindMinLogContainingOutstandingPrep();
   uint64_t FindMinPrepLogReferencedByMemTable();
@@ -787,6 +788,7 @@ class DBImpl : public DB {
   // State below is protected by mutex_
   mutable InstrumentedMutex mutex_;
   InstrumentedMutex buf_mutex2_;
+  InstrumentedMutex sync_mutex_;
 
   std::atomic<bool> shutting_down_;
   // This condition variable is signaled on these conditions:

@@ -60,7 +60,7 @@ Status DBImpl::WriteImpl(const WriteOptions& write_options,
                          WriteBatch* my_batch, WriteCallback* callback,
                          uint64_t* log_used, uint64_t log_ref,
                          bool disable_memtable, bool write_to_buf,
-                         bool flush_buf) {
+                         bool flush_buf, WriteBatch** old_buf_ptr) {
   if (my_batch == nullptr) {
     return Status::Corruption("Batch is nullptr!");
   }
@@ -72,12 +72,13 @@ Status DBImpl::WriteImpl(const WriteOptions& write_options,
   if (write_to_buf) {
     // No need for synchronization here since mysql sends such commits one by one
     InstrumentedMutexLock bl(&buf_mutex2_);
+    //WriteBatchInternal::Append(&buf, my_batch, true /*wal_only*/);
     WriteBatchInternal::Append(buf_ptr, my_batch, true /*wal_only*/);
     if (flush_buf) {
       // This commit is the last commit in the group commit (or an empty write
       // after last commit). So flush the buffer to the WAL.
       my_batch = buf_ptr;
-      old_buf_ptr = buf_ptr;
+      *old_buf_ptr = buf_ptr;
       buf_ptr = new WriteBatch();
     } else {
       // We assume that when write_to_buf is set there is no memtable write
