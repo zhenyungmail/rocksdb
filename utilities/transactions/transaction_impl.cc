@@ -192,7 +192,7 @@ Status TransactionImpl::Prepare() {
     WriteBatchInternal::MarkEndPrepare(GetWriteBatch()->GetWriteBatch(), name_);
     s = db_impl_->WriteImpl(write_options, GetWriteBatch()->GetWriteBatch(),
                             /*callback*/ nullptr, &log_number_, /*log ref*/ 0,
-                            /* disable_memtable*/ false);
+                            /* disable_memtable*/ true);
     if (s.ok()) {
       assert(log_number_ != 0);
       dbimpl_->MarkLogAsContainingPrepSection(log_number_);
@@ -271,8 +271,10 @@ Status TransactionImpl::Commit() {
 
     const bool write_to_buf = true;
     const bool flush_buf = true;
-    s = db_impl_->WriteImpl(write_options_, working_batch, nullptr, nullptr,
-                            log_number_, true, write_to_buf, !flush_buf);
+    WriteOptions write_options = write_options_;
+    write_options.disableWAL = true;
+    s = db_impl_->WriteImpl(write_options, working_batch, nullptr, nullptr,
+                            log_number_, false, write_to_buf, !flush_buf);
     if (!s.ok()) {
       return s;
     }

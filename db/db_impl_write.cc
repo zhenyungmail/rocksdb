@@ -83,7 +83,7 @@ Status DBImpl::WriteImpl(const WriteOptions& write_options,
     } else {
       // We assume that when write_to_buf is set there is no memtable write
       // reqeusted. This is correct when writing to memtable at prepare phase.
-      return Status::OK();
+      //return Status::OK();
     }
   }
 
