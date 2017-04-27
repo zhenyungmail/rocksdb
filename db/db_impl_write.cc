@@ -83,6 +83,16 @@ Status DBImpl::WriteImpl(const WriteOptions& write_options,
     } else {
       // We assume that when write_to_buf is set there is no memtable write
       // reqeusted. This is correct when writing to memtable at prepare phase.
+      ColumnFamilyMemTablesImpl column_family_memtables(
+          versions_->GetColumnFamilySet());
+      auto last_version = versions_->LastSequence();
+      WriteBatchInternal::SetSequence(my_batch, last_version + 1);
+      auto s = WriteBatchInternal::InsertInto(
+          my_batch, &column_family_memtables, &flush_scheduler_,
+          write_options.ignore_missing_column_families, 0 /*log_number*/, this,
+          false /*concurrent_memtable_writes*/);
+      versions_->SetLastSequence(last_version + 1);
+      return s;
       //return Status::OK();
     }
   }
