@@ -5,6 +5,14 @@
 * Fix WritableFile buffer size in direct IO.
 * Add prefetch to PosixRandomAccessFile in buffered io.
 * Fix PinnableSlice access invalid address when row cache is enabled.
+### Public API Change
+* Introduce WriteBatch::PopSavePoint to pop the most recent save point explicitly
+### New Features
+* FIFO compaction to support Intra L0 compaction too with CompactionOptionsFIFO.allow_compaction=true.
+* DB::ResetStats() to reset internal stats.
+* Statistics::Reset() to reset user stats.
+* ldb add option --try_load_options, which will open DB with its own option file.
+* Support dynamically change `max_open_files` option via SetDBOptions()
 
 ## 5.4.0 (04/11/2017)
 ### Public API Change
