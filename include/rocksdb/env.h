@@ -542,7 +542,7 @@ class RandomAccessFile {
   // aligned buffer for Direct I/O
   virtual size_t GetRequiredBufferAlignment() const { return kDefaultPageSize; }
 
-  virtual void Rewind() { }
+  virtual void Rewind() {}
 
   // Remove any kind of caching of data from the offset to offset+length
   // of this file. If the length is 0, then it refers to the end of file.

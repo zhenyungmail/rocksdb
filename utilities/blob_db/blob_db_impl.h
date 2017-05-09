@@ -87,11 +87,10 @@ class EvictAllVersionsCompactionListener : public EventListener {
     virtual void OnCompaction(int level, const Slice& key,
                               CompactionListenerValueType value_type,
                               const Slice& existing_value,
-                              const SequenceNumber& sn,
-                              bool is_new) override;
-    
+                              const SequenceNumber& sn, bool is_new) override;
+
     void SetImplPtr(BlobDBImpl* p) { impl_ = p; }
-   
+
    private:
     BlobDBImpl* impl_;
   };
@@ -102,10 +101,8 @@ class EvictAllVersionsCompactionListener : public EventListener {
   virtual CompactionEventListener* GetCompactionEventListener() override {
     return internal_listener_.get();
   }
-    
-  void SetImplPtr(BlobDBImpl* p) {
-    internal_listener_->SetImplPtr(p);
-  }
+
+  void SetImplPtr(BlobDBImpl* p) { internal_listener_->SetImplPtr(p); }
 
  private:
   std::unique_ptr<InternalListener> internal_listener_;
