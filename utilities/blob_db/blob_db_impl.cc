@@ -604,7 +604,12 @@ Status BlobDBImpl::CreateWriterLocked(const std::shared_ptr<BlobFile>& bfile) {
   std::string fpath(bfile->PathName());
   std::unique_ptr<WritableFile> wfile;
 
-  Status s = myenv_->ReopenWritableFile(fpath, &wfile, env_options_);
+  // We are having issue that we write duplicate blob to blob file and the bug
+  // is related to writable file buffer. Force no buffer until we fix the bug.
+  EnvOptions env_options = env_options_;
+  env_options.writable_file_max_buffer_size = 0;
+
+  Status s = myenv_->ReopenWritableFile(fpath, &wfile, env_options);
   if (!s.ok()) {
     Log(InfoLogLevel::ERROR_LEVEL, db_options_.info_log,
         "Failed to open blob file for write: %s status: '%s'"
@@ -615,7 +620,7 @@ Status BlobDBImpl::CreateWriterLocked(const std::shared_ptr<BlobFile>& bfile) {
   }
 
   std::unique_ptr<WritableFileWriter> fwriter;
-  fwriter.reset(new WritableFileWriter(std::move(wfile), env_options_));
+  fwriter.reset(new WritableFileWriter(std::move(wfile), env_options));
 
   uint64_t boffset = bfile->GetFileSize();
   if (debug_level_ >= 2 && boffset) {
