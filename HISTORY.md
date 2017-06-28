@@ -3,6 +3,7 @@
 
 ### New Features
 * RateLimiter support for throttling background reads, or throttling the sum of background reads and writes. This can give more predictable I/O usage when compaction reads more data than it writes, e.g., due to lots of deletions.
+* [Experimental] FIFO compaction with TTL support. It can be enabled by setting CompactionOptionsFIFO.ttl > 0.
 
 ## 5.5.0 (05/17/2017)
 ### New Features
